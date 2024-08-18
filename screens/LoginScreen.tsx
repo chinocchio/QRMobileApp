@@ -14,8 +14,12 @@ const LoginScreen = ({ navigation }) => {
         name, // Use 'name' instead of 'username'
         password,
       });
-  
+
       if (response.status === 200) {
+        // Store the user data in AsyncStorage
+        await AsyncStorage.setItem('user', JSON.stringify(response.data));
+
+        // Navigate to the QrScanner screen
         navigation.navigate('QrScanner', { user: response.data });
       }
     } catch (error) {
@@ -29,11 +33,9 @@ const LoginScreen = ({ navigation }) => {
         Alert.alert('Error', 'Failed to connect to the server');
       }
       console.error('Network request failed:', error);
-
-
-
     }
   };
+
   return (
     <View style={{ padding: 20 }}>
       <Text>Username</Text>

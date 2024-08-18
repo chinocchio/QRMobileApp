@@ -2,15 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const QrScannerScreen = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
+
+      // Retrieve the user's name from AsyncStorage
+      const user = await AsyncStorage.getItem('user');
+      if (user) {
+        const userData = JSON.parse(user);
+        setUserName(userData.name); // Assuming the user object has a 'name' property
+      }
     })();
   }, []);
 
@@ -21,7 +30,7 @@ const QrScannerScreen = () => {
     try {
       const response = await axios.post('http://192.168.1.9:8000/api/record-scan', {
         qr: data,
-        scanned_by: "Tang Ina mo" , // Replace with dynamic user data if available
+        scanned_by: userName, // Use the logged-in user's name
       });
 
       if (response.status === 201) {
