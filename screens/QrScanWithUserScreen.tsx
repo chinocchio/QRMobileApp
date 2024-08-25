@@ -1,46 +1,57 @@
+// screens/QrScanWithUserScreen.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const QrScannerScreen = () => {
+const QrScanWithUserScreen = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
 
-      // Retrieve the user's name from AsyncStorage
       const user = await AsyncStorage.getItem('user');
       if (user) {
         const userData = JSON.parse(user);
-        setUserName(userData.name); // Assuming the user object has a 'name' property
+        setUserId(userData.id);
       }
     })();
   }, []);
 
   const handleBarCodeScanned = async ({ type, data }) => {
+    if (scanned) return; // Prevent multiple scans
+
     setScanned(true);
-    Alert.alert('QR Code Scanned', `Scanned data: ${data}`);
+    console.log('QR Code Scanned:', data);
 
     try {
-      const response = await axios.post('https://lockup.pro/api/record-scan', {
+      const payload = {
+        student_id: userId,
         qr: data,
-        scanned_by: userName, // Use the logged-in user's name
-      });
+      };
+
+      // Log the payload
+      console.log('Payload being sent to API:', payload);
+
+      const response = await axios.post('http://192.168.1.9:8000/api/macs', payload);
+
+      // Log the response
+      console.log('API Response:', response);
 
       if (response.status === 201) {
-        Alert.alert('Success', 'Scan recorded successfully!');
+        Alert.alert('Success', 'MAC address linked to student successfully!');
       } else {
-        Alert.alert('Error', 'Failed to record the scan');
+        Alert.alert('Error', 'Failed to link MAC address.');
       }
     } catch (error) {
-      console.error('Error recording scan:', error);
-      Alert.alert('Error', 'Failed to record the scan');
+      // Log the error
+      console.error('Error linking MAC address:', error);
+      Alert.alert('Error', 'Failed to link MAC address.');
     }
   };
 
@@ -54,7 +65,7 @@ const QrScannerScreen = () => {
   return (
     <View style={styles.container}>
       <BarCodeScanner
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+        onBarCodeScanned={handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
       />
       {scanned && (
@@ -71,4 +82,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default QrScannerScreen;
+export default QrScanWithUserScreen;
