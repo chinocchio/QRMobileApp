@@ -38,7 +38,7 @@ const QrScanWithUserScreen = () => {
       // Log the payload
       console.log('Payload being sent to API:', payload);
 
-      const response = await axios.post('http://192.168.1.9:8000/api/macs', payload);
+      const response = await axios.post('http://192.168.1.11:8000/api/macs', payload);
 
       // Log the response
       console.log('API Response:', response);

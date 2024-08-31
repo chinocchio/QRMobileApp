@@ -10,7 +10,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('https://lockup.pro/api/student', {
+      const response = await axios.post('http://192.168.1.11:8000/api/student', {
         name,
         password,
       });
